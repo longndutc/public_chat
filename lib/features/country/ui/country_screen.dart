@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:public_chat/features/chat/chat.dart';
 import 'package:public_chat/features/country/cubit/country_cubit.dart';
 import 'package:public_chat/features/language_load/language_load.dart';
+import 'package:public_chat/l10n/text_ui_static.dart';
+import 'package:public_chat/service_locator/service_locator.dart';
 import 'package:public_chat/utils/app_extensions.dart';
 import 'package:public_chat/utils/constants.dart';
 import 'package:public_chat/utils/functions_alert_dialog.dart';
@@ -33,7 +35,9 @@ class _CountryScreenState extends State<CountryScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!(widget.isHasBackButton ?? false)) {
-        await _showNoticeDialogSelectCountry();
+        final textsUIStatic =
+            ServiceLocator.instance.get<TextsUIStatic>().texts;
+        await _showNoticeDialogSelectCountry(textsUIStatic);
       }
       await _setCurrentCountryCode();
     });
@@ -52,29 +56,36 @@ class _CountryScreenState extends State<CountryScreen> {
         : widget.currentLanguageCode;
   }
 
-  Future<void> _showNoticeDialogSelectCountry() async {
+  Future<void> _showNoticeDialogSelectCountry(
+    Map<String, Map<String, String>> textsUIStatic,
+  ) async {
     final countryCubit = context.read<CountryCubit>();
     await FunctionsAlertDialog.showNoticeAndConfirmDialog(
       context,
       title: Helper.getTextTranslated(
         'notificationTitle',
         _getCurrentLanguageCode(countryCubit),
+        textsUIStatic,
         previousLanguageCode: countryCubit.previousLanguageCodeSelected,
       ),
       description: Helper.getTextTranslated(
         'noticeSelectCountryText',
         _getCurrentLanguageCode(countryCubit),
+        textsUIStatic,
         previousLanguageCode: countryCubit.previousLanguageCodeSelected,
       ),
       titleButtonClose: Helper.getTextTranslated(
         'buttonCloseTitle',
         _getCurrentLanguageCode(countryCubit),
+        textsUIStatic,
         previousLanguageCode: countryCubit.previousLanguageCodeSelected,
       ),
     );
   }
 
-  Future<void> _showConfirmDialogSelectCountry() async {
+  Future<void> _showConfirmDialogSelectCountry(
+    Map<String, Map<String, String>> textsUIStatic,
+  ) async {
     final countryCubit = context.read<CountryCubit>();
     final countryNameSelected =
         context.read<CountryCubit>().getCountryNameSelected();
@@ -84,21 +95,25 @@ class _CountryScreenState extends State<CountryScreen> {
         title: Helper.getTextTranslated(
           'confirmTitle',
           _getCurrentLanguageCode(countryCubit),
+          textsUIStatic,
           previousLanguageCode: countryCubit.previousLanguageCodeSelected,
         ),
         description: '${Helper.getTextTranslated(
           'confirmSelectCountryText',
           _getCurrentLanguageCode(countryCubit),
+          textsUIStatic,
           previousLanguageCode: countryCubit.previousLanguageCodeSelected,
         )}\n"$countryNameSelected"?',
         titleButtonClose: Helper.getTextTranslated(
           'buttonCloseTitle',
           _getCurrentLanguageCode(countryCubit),
+          textsUIStatic,
           previousLanguageCode: countryCubit.previousLanguageCodeSelected,
         ),
         titleButtonSubmit: Helper.getTextTranslated(
           'buttonOKTitle',
           _getCurrentLanguageCode(countryCubit),
+          textsUIStatic,
           previousLanguageCode: countryCubit.previousLanguageCodeSelected,
         ),
         callBackClickSubmit: () {
@@ -122,6 +137,7 @@ class _CountryScreenState extends State<CountryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textsUIStatic = ServiceLocator.instance.get<TextsUIStatic>().texts;
     final countryCubit = context.read<CountryCubit>();
     return Scaffold(
       appBar: AppBar(
@@ -129,8 +145,8 @@ class _CountryScreenState extends State<CountryScreen> {
         elevation: 0.5,
         leading: _buildLeadingButtonBack(countryCubit),
         centerTitle: true,
-        title: _buildTitleAppBar(countryCubit),
-        actions: [_buildButtonActionAppBar(countryCubit)],
+        title: _buildTitleAppBar(countryCubit, textsUIStatic),
+        actions: [_buildButtonActionAppBar(countryCubit, textsUIStatic)],
       ),
       body: SafeArea(
         child: Padding(
@@ -157,7 +173,10 @@ class _CountryScreenState extends State<CountryScreen> {
         : null;
   }
 
-  Widget _buildTitleAppBar(CountryCubit countryCubit) {
+  Widget _buildTitleAppBar(
+    CountryCubit countryCubit,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     return BlocConsumer<CountryCubit, CountryState>(
       listenWhen: (previous, current) => current is CurrentCountryCodeSelected,
       listener: (context, state) => state is CurrentCountryCodeSelected
@@ -184,6 +203,7 @@ class _CountryScreenState extends State<CountryScreen> {
               Helper.getTextTranslated(
                 'countryScreenTitle',
                 _getCurrentLanguageCode(countryCubit),
+                textsUIStatic,
                 previousLanguageCode: countryCubit.previousLanguageCodeSelected,
               ),
               style: const TextStyle(color: Colors.black, fontSize: 24),
@@ -194,7 +214,10 @@ class _CountryScreenState extends State<CountryScreen> {
     );
   }
 
-  Widget _buildButtonActionAppBar(CountryCubit countryCubit) {
+  Widget _buildButtonActionAppBar(
+    CountryCubit countryCubit,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     return Align(
       alignment: Alignment.center,
       child: Padding(
@@ -212,19 +235,19 @@ class _CountryScreenState extends State<CountryScreen> {
                 : countryCubit.currentCountryCodeSelected;
             return isShowButtonAction
                 ? GestureDetector(
-                    onTap: () async =>
-                        countryCubit.checkNeedConfirmSelectCountry()
-                            ? await _showConfirmDialogSelectCountry()
-                            : Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                    currentCountryCode: currentCountryCode,
-                                    currentLanguageCode: countryCubit
-                                        .currentLanguageCodeSelected,
-                                  ),
-                                ),
+                    onTap: () async => countryCubit
+                            .checkNeedConfirmSelectCountry()
+                        ? await _showConfirmDialogSelectCountry(textsUIStatic)
+                        : Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                currentCountryCode: currentCountryCode,
+                                currentLanguageCode:
+                                    countryCubit.currentLanguageCodeSelected,
                               ),
+                            ),
+                          ),
                     child: BlocBuilder<LanguageLoadCubit, LanguageLoadState>(
                       buildWhen: (previous, current) =>
                           current is LanguageLoadSuccess,
@@ -234,12 +257,14 @@ class _CountryScreenState extends State<CountryScreen> {
                               ? Helper.getTextTranslated(
                                   'buttonSelectTitle',
                                   _getCurrentLanguageCode(countryCubit),
+                                  textsUIStatic,
                                   previousLanguageCode:
                                       countryCubit.previousLanguageCodeSelected,
                                 )
                               : Helper.getTextTranslated(
                                   'buttonGoTitle',
                                   _getCurrentLanguageCode(countryCubit),
+                                  textsUIStatic,
                                   previousLanguageCode:
                                       countryCubit.previousLanguageCodeSelected,
                                 ),

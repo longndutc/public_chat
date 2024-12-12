@@ -15,6 +15,8 @@ import 'package:public_chat/utils/constants.dart';
 import 'package:public_chat/utils/helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'l10n/text_ui_static.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -56,6 +58,8 @@ class MainApp extends StatelessWidget {
                       .get(Constants.prefCurrentCountryCode)
                       ?.toString() ??
                   'US';
+              final textsUIStatic =
+                  ServiceLocator.instance.get<TextsUIStatic>().texts;
               return Container(
                 color: Colors.white,
                 child: Column(
@@ -71,6 +75,7 @@ class MainApp extends StatelessWidget {
                       Helper.getTextTranslated(
                         'widgetErrorTitle',
                         Helper.getLanguageCodeByCountryCode(countryCode),
+                        textsUIStatic,
                       ),
                       style: const TextStyle(
                         color: Colors.red,

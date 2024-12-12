@@ -4,6 +4,8 @@ import 'package:public_chat/features/chat/ui/chat_screen.dart';
 import 'package:public_chat/features/country/country.dart';
 import 'package:public_chat/features/login/bloc/login_cubit.dart';
 import 'package:public_chat/features/login/ui/widgets/sign_in_button.dart';
+import 'package:public_chat/l10n/text_ui_static.dart';
+import 'package:public_chat/service_locator/service_locator.dart';
 import 'package:public_chat/utils/functions_alert_dialog.dart';
 import 'package:public_chat/utils/helper.dart';
 
@@ -12,17 +14,23 @@ class LoginScreen extends StatelessWidget {
     super.key,
     required this.currentCountryCode,
     required this.currentLanguageCode,
+    this.textsUIStaticForTest,
   });
 
   final String currentCountryCode;
   final String currentLanguageCode;
+  final Map<String, Map<String, String>>? textsUIStaticForTest;
 
-  void _handleActionLoginSuccess(BuildContext context) {
+  void _handleActionLoginSuccess(
+    BuildContext context,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     FunctionsAlertDialog.showAlertFlushBar(
       context,
       Helper.getTextTranslated(
         'loginSuccessMessage',
         currentLanguageCode,
+        textsUIStatic,
       ),
       true,
     );
@@ -43,12 +51,16 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void _handleActionLoginFailure(BuildContext context) {
+  void _handleActionLoginFailure(
+    BuildContext context,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     FunctionsAlertDialog.showAlertFlushBar(
       context,
       Helper.getTextTranslated(
         'loginFailMessage',
         currentLanguageCode,
+        textsUIStatic,
       ),
       false,
     );
@@ -56,6 +68,8 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textsUIStatic = textsUIStaticForTest ??
+        ServiceLocator.instance.get<TextsUIStatic>().texts;
     return BlocListener<LoginCubit, LoginState>(
       listenWhen: (previous, current) =>
           current is LoginLoading ||
@@ -68,10 +82,10 @@ class LoginScreen extends StatelessWidget {
           Navigator.of(context).pop();
         }
         if (state is LoginSuccess && context.mounted) {
-          _handleActionLoginSuccess(context);
+          _handleActionLoginSuccess(context, textsUIStatic);
         }
         if (state is LoginFailed && context.mounted) {
-          _handleActionLoginFailure(context);
+          _handleActionLoginFailure(context, textsUIStatic);
         }
       },
       child: Scaffold(
@@ -80,6 +94,7 @@ class LoginScreen extends StatelessWidget {
             label: Helper.getTextTranslated(
               'loginTitle',
               currentLanguageCode,
+              textsUIStatic,
             ),
             onPressed: () => context.read<LoginCubit>().requestLogin(),
           ),

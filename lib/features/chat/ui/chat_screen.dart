@@ -13,6 +13,8 @@ import 'package:public_chat/features/country/country.dart';
 import 'package:public_chat/features/language_load/language_load.dart';
 import 'package:public_chat/features/login/bloc/login_cubit.dart';
 import 'package:public_chat/features/login/ui/login_screen.dart';
+import 'package:public_chat/l10n/text_ui_static.dart';
+import 'package:public_chat/service_locator/service_locator.dart';
 import 'package:public_chat/utils/app_extensions.dart';
 import 'package:public_chat/utils/functions_alert_dialog.dart';
 import 'package:public_chat/utils/helper.dart';
@@ -54,12 +56,16 @@ class _ChatScreenState extends State<ChatScreen> {
         : widget.currentLanguageCode;
   }
 
-  void _handleActionLogoutSuccess(ChatCubit chatCubit) {
+  void _handleActionLogoutSuccess(
+    ChatCubit chatCubit,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     FunctionsAlertDialog.showAlertFlushBar(
       context,
       Helper.getTextTranslated(
         'logoutSuccessMessage',
         _getCurrentLanguageCode(chatCubit),
+        textsUIStatic,
       ),
       true,
     );
@@ -74,12 +80,16 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  void _handleActionLogoutFailure(ChatCubit chatCubit) {
+  void _handleActionLogoutFailure(
+    ChatCubit chatCubit,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     FunctionsAlertDialog.showAlertFlushBar(
       context,
       Helper.getTextTranslated(
         'logoutFailMessage',
         _getCurrentLanguageCode(chatCubit),
+        textsUIStatic,
       ),
       false,
     );
@@ -87,6 +97,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final textsUIStatic = ServiceLocator.instance.get<TextsUIStatic>().texts;
     final chatCubit = context.read<ChatCubit>();
 
     return BlocListener<LoginCubit, LoginState>(
@@ -101,10 +112,10 @@ class _ChatScreenState extends State<ChatScreen> {
           Navigator.of(context).pop();
         }
         if (state is LogoutSuccess && context.mounted) {
-          _handleActionLogoutSuccess(chatCubit);
+          _handleActionLogoutSuccess(chatCubit, textsUIStatic);
         }
         if (state is LogoutFailed && context.mounted) {
-          _handleActionLogoutFailure(chatCubit);
+          _handleActionLogoutFailure(chatCubit, textsUIStatic);
         }
       },
       child: Scaffold(
@@ -113,13 +124,13 @@ class _ChatScreenState extends State<ChatScreen> {
           elevation: 0.5,
           leading: _buildLeadingCountryFlag(chatCubit),
           centerTitle: true,
-          title: _buildTitleAppBar(chatCubit),
-          actions: [_buildButtonActionDropDown(chatCubit)],
+          title: _buildTitleAppBar(chatCubit, textsUIStatic),
+          actions: [_buildButtonActionDropDown(chatCubit, textsUIStatic)],
         ),
         body: SafeArea(
           child: Column(
             children: [
-              _buildListMessage(chatCubit),
+              _buildListMessage(chatCubit, textsUIStatic),
               _buildMessageBox(chatCubit),
             ],
           ),
@@ -150,7 +161,10 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildTitleAppBar(ChatCubit chatCubit) {
+  Widget _buildTitleAppBar(
+    ChatCubit chatCubit,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     return BlocBuilder<LanguageLoadCubit, LanguageLoadState>(
       buildWhen: (previous, current) => current is LanguageLoadSuccess,
       builder: (context, state) {
@@ -158,6 +172,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Helper.getTextTranslated(
             'chatScreenTitle',
             _getCurrentLanguageCode(chatCubit),
+            textsUIStatic,
           ),
           style: const TextStyle(color: Colors.black, fontSize: 24),
           maxLines: 2,
@@ -167,7 +182,10 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildButtonActionDropDown(ChatCubit chatCubit) {
+  Widget _buildButtonActionDropDown(
+    ChatCubit chatCubit,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: DropdownButtonHideUnderline(
@@ -219,10 +237,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ? Helper.getTextTranslated(
                                       'languageTitle',
                                       _getCurrentLanguageCode(chatCubit),
+                                      textsUIStatic,
                                     )
                                   : Helper.getTextTranslated(
                                       'logoutTitle',
                                       _getCurrentLanguageCode(chatCubit),
+                                      textsUIStatic,
                                     ),
                               style: const TextStyle(
                                 color: Colors.black,
@@ -265,7 +285,10 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildListMessage(ChatCubit chatCubit) {
+  Widget _buildListMessage(
+    ChatCubit chatCubit,
+    Map<String, Map<String, String>> textsUIStatic,
+  ) {
     final User? user = FirebaseAuth.instance.currentUser;
     return BlocBuilder<LanguageLoadCubit, LanguageLoadState>(
       buildWhen: (previous, current) => current is LanguageLoadSuccess,
@@ -302,6 +325,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Helper.getTextTranslated(
                             'emptyMessageChat',
                             _getCurrentLanguageCode(chatCubit),
+                            textsUIStatic,
                           ),
                           textAlign: TextAlign.center,
                         ),

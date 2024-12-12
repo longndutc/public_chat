@@ -1,6 +1,3 @@
-import 'package:public_chat/l10n/text_ui_static.dart';
-import 'package:public_chat/service_locator/service_locator.dart';
-
 import 'constants.dart';
 
 class Helper {
@@ -11,12 +8,12 @@ class Helper {
 
   static String getTextTranslated(
     String key,
-    String currentLanguageCode, {
+    String currentLanguageCode,
+    Map<String, Map<String, String>> allTextStatic, {
     String? previousLanguageCode,
   }) {
-    final textsUIStatic = ServiceLocator.instance.get<TextsUIStatic>().texts;
-    return textsUIStatic[key]![currentLanguageCode] ??
-        (textsUIStatic[key]![previousLanguageCode] ??
-            textsUIStatic[key]!['en']!);
+    return allTextStatic[key]![currentLanguageCode] ??
+        (allTextStatic[key]![previousLanguageCode] ??
+            allTextStatic[key]!['en']!);
   }
 }
